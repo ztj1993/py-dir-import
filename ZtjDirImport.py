@@ -36,9 +36,9 @@ class DirImport(object):
 
     def exclude(self, alias):
         """排除模块"""
-        items = [alias] if isinstance(alias, str) else alias
-        for item in items:
-            self.exclude(item)
+        alias = [alias] if isinstance(alias, str) else alias
+        for name in alias:
+            self.modules.pop(name)
 
     def filter(self, var=None):
         """过滤模块"""
