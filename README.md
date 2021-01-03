@@ -5,5 +5,12 @@
 
 ## 安装
 ```
-pip install py-ztj-dir-import
+pip install dir-import
+```
+
+## 使用
+```
+from ZtjDirImport import DirImport
+
+print(DirImport('routes').all())
 ```

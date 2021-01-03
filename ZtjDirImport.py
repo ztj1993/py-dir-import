@@ -2,16 +2,16 @@
 # Intro: 目录模块加载
 # Author: Ztj
 # Email: ztj1993@gmail.com
-# Version: 0.0.1
-# Date: 2019-11-21
+# Version: 0.0.2
+# Date: 2020-01-03
 
 import importlib
 import pkgutil
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
-class ZtjDirModuleImport(object):
+class DirImport(object):
     """目录模块加载"""
 
     def __init__(self, path=None):
