@@ -1,59 +1,100 @@
 # -*- coding: utf-8 -*-
-# Intro: 目录模块加载
+# Intro: 目录引入模块
 # Author: Ztj
 # Email: ztj1993@gmail.com
-# Version: 0.0.2
+# Version: 0.0.3
 # Date: 2020-01-03
 
 import importlib
 import pkgutil
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 
 class DirImport(object):
-    """目录模块加载"""
+    """目录引入模块"""
 
-    def __init__(self, path=None):
-        self.mods = dict()
-        self.load(path)
+    def __init__(self, prefix, directory=None):
+        self.modules = dict()
+        self.prefix = prefix
+        self.directory = list()
 
-    def load(self, path):
-        mod = importlib.import_module(path)
-        for _, file, _ in pkgutil.iter_modules(path=mod.__path__, prefix=mod.__name__ + '.'):
-            self.mods[file] = importlib.import_module(file)
+        if directory is not None:
+            self.dir(directory)
+            self.load()
+
+    def dir(self, directory):
+        """添加目录"""
+        self.directory.append(directory)
+
+    def load(self):
+        """加载模块"""
+        path = self.directory
+        prefix = self.prefix + '.'
+        for _, file, _ in pkgutil.iter_modules(path, prefix):
+            self.modules[file] = importlib.import_module(file)
+
+    def exclude(self, alias):
+        """排除模块"""
+        items = [alias] if isinstance(alias, str) else alias
+        for item in items:
+            self.exclude(item)
+
+    def filter(self, var=None):
+        """过滤模块"""
+        exclude = []
+        for name, module in self.modules.items():
+            if not hasattr(module, var):
+                exclude.append(name)
+        self.exclude(exclude)
+
+    def enable(self, var='enable'):
+        """启用模块"""
+        exclude = []
+        for name, module in self.modules.items():
+            if not hasattr(module, var):
+                exclude.append(name)
+            elif not getattr(module, var):
+                exclude.append(name)
+        self.exclude(exclude)
+
+    def disable(self, var='disable'):
+        """禁用模块"""
+        exclude = []
+        for name, module in self.modules.items():
+            if hasattr(module, var) and getattr(module, var):
+                exclude.append(name)
+        self.exclude(exclude)
+
+    def allow(self, alias):
+        """允许模块"""
+        exclude = []
+        alias = [alias] if isinstance(alias, str) else alias
+        for name in alias:
+            if name not in self.modules:
+                exclude.append(name)
+        self.exclude(exclude)
 
     def get(self, name):
-        return self.mods.get(name)
+        return self.modules.get(name)
 
     def all(self):
-        return self.mods
+        return self.modules
 
     def group(self, var):
-        mods = dict()
-        for name, mod in self.mods.items():
-            if not hasattr(mod, var):
+        modules = dict()
+        for name, module in self.modules.items():
+            if not hasattr(module, var):
                 continue
-            if not isinstance(mods.get(getattr(mod, var)), dict):
-                mods[getattr(mod, var)] = dict()
-            mods[getattr(mod, var)][name] = mod
-        return mods
-
-    def filter(self, var):
-        exclude = []
-        for name, mod in self.mods.items():
-            if not hasattr(mod, var):
-                exclude.append(name)
-            if getattr(mod, var) is False:
-                exclude.append(name)
-        for name in exclude:
-            self.mods.pop(name)
-        return self
+            if not isinstance(modules.get(getattr(module, var)), dict):
+                modules[getattr(module, var)] = dict()
+            modules[getattr(module, var)][name] = module
+        return modules
 
     def call(self, var, *args, **kwargs):
-        mods = dict()
-        for name, mod in self.mods.items():
-            if not hasattr(mod, var):
+        modules = dict()
+        for name, module in self.modules.items():
+            if not hasattr(module, var):
                 continue
-            mods[name] = getattr(mod, var)(*args, **kwargs)
-        return mods
+            modules[name] = getattr(module, var)(*args, **kwargs)
+        return modules
